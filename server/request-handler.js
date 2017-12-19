@@ -27,7 +27,7 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  console.log(request);
+  //console.log(request);
   var messages = {results: []};
   
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
@@ -47,25 +47,32 @@ var requestHandler = function(request, response) {
   // which includes the status and all headers.
 
   // response.writeHead(statusCode, headers);
-  var clock = new Date();
+
   if (!request.url.startsWith('classes/messages')) {
     response.writeHead(404, headers);
     response.end();
   } 
+
   if (request.method === 'POST') {
-    let message = {
-      objectId: clock.getTime(),
-      username: request._postData.username,
-      message: request._postData.message,
-      createdAt: clock.toJSON(),
-      updatedAt: clock.toJSON()
-    };
-    messages.results.push(message);
-    response.writeHead(201, headers);
+    var body = '';
+    var message;
+    var clock = new Date;
+    request.on('data', function(data) {
+      body += data;
+    });
+    request.on('end', function() {
+      message = JSON.parse(body);
+      message.objectId = clock.getTime();
+      message.createdAt = clock.toJSON();
+      message.updatedAt = clock.toJSON();
+      messages.results.push(message);
+      response.writeHead(201, headers);
+      response.end(JSON.stringify({"objectId": message.objectId, "createdAt": message.createdAt}));
+    });
   } 
   if (request.method === 'GET') {
     response.writeHead(200, headers);
-    response.end();
+    response.end('{}');
   }  
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
