@@ -47,13 +47,9 @@ var requestHandler = function(request, response) {
   // which includes the status and all headers.
 
   // response.writeHead(statusCode, headers);
+  // POST METHOD
 
-  if (!request.url.startsWith('classes/messages')) {
-    response.writeHead(404, headers);
-    response.end();
-  } 
-
-  if (request.method === 'POST') {
+  if (request.url.startsWith('/classes/messages') && request.method === 'POST') {
     var body = '';
     var message;
     var clock = new Date;
@@ -67,13 +63,17 @@ var requestHandler = function(request, response) {
       message.updatedAt = clock.toJSON();
       messages.results.push(message);
       response.writeHead(201, headers);
-      response.end(JSON.stringify({"objectId": message.objectId, "createdAt": message.createdAt}));
+      let returnObj = JSON.stringify({"objectId": message.objectId, "createdAt": message.createdAt});
+      response.end(returnObj);
     });
-  } 
-  if (request.method === 'GET') {
+  } else if (request.url.startsWith('/classes/messages') && request.method === 'GET') {
     response.writeHead(200, headers);
-    response.end('{}');
-  }  
+    let obj = JSON.stringify(messages);
+    response.end(obj); 
+  } else {
+    response.writeHead(404, headers);
+    response.end();
+  } 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
   // response.end() will be the body of the response - i.e. what shows
@@ -81,7 +81,6 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-
   response.end();
 };
 
@@ -96,15 +95,6 @@ var requestHandler = function(request, response) {
 // client from this domain by setting up static file serving.
 
 
-// djb2 hashing function
-var djb2Code = function(str) {
-  var hash = 5381;
-  for (i = 0; i < str.length; i++) {
-    char = str.charCodeAt(i);
-    hash = ((hash << 5) + hash) + char; /* hash * 33 + c */
-  }
-  return hash;
-};
 
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
