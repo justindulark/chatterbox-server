@@ -12,6 +12,19 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 
+var headers = {
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'access-control-allow-headers': 'content-type, accept',
+  'access-control-max-age': 10, // Seconds.
+  'Content-Type': 'application/json'
+};
+
+
+
+
+var messages = [];
+
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
   //
@@ -28,20 +41,13 @@ var requestHandler = function(request, response) {
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
   //console.log(request);
-  var messages = {results: []};
   
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
   // The outgoing status.
-  var statusCode = 200;
+  // var statusCode = 200;
 
   // See the note below about CORS headers.
-  var headers = defaultCorsHeaders;
 
-  // Tell the client we are sending them plain text.
-  //
-  // You will need to change this if you are sending something
-  // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = 'application/json';
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
@@ -50,6 +56,7 @@ var requestHandler = function(request, response) {
   // POST METHOD
 
   if (request.url.startsWith('/classes/messages') && request.method === 'POST') {
+    console.log('posting!');
     var body = '';
     var message;
     var clock = new Date;
@@ -61,15 +68,16 @@ var requestHandler = function(request, response) {
       message.objectId = clock.getTime();
       message.createdAt = clock.toJSON();
       message.updatedAt = clock.toJSON();
-      messages.results.push(message);
+      messages.push(message);
       response.writeHead(201, headers);
       let returnObj = JSON.stringify({"objectId": message.objectId, "createdAt": message.createdAt});
-      response.end(returnObj);
+      response.end(JSON.stringify("hello"));
+      console.log(response.statusCode)
     });
   } else if (request.url.startsWith('/classes/messages') && request.method === 'GET') {
     response.writeHead(200, headers);
-    let obj = JSON.stringify(messages);
-    response.end(obj); 
+    let returnObj = JSON.stringify({results: messages});
+    response.end(returnObj); 
   } else {
     response.writeHead(404, headers);
     response.end();
@@ -81,7 +89,6 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end();
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -94,13 +101,5 @@ var requestHandler = function(request, response) {
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
 
-
-
-var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
-};
 
 module.exports.requestHandler = requestHandler;

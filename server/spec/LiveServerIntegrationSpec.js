@@ -43,6 +43,7 @@ describe('server', function() {
     };
 
     request(requestParams, function(error, response, body) {
+      console.log(response.statusCode, 'response code');
       expect(response.statusCode).to.equal(201);
       done();
     });
